@@ -7,12 +7,17 @@ Built with NestJS, PostgreSQL, and Ethers.js. Listens to Orbit A/B smart contrac
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18-green)](https://nodejs.org/)
 
+## What is C-Parker?
+
+C-Parker is a decentralized referral and matrix platform built around **Orbit A** and **Orbit B** on Polygon Amoy. Users register and purchase levels on-chain using **Carbon Credit Token (CCT)**; this backend indexes those smart-contract events into PostgreSQL and exposes a REST API for dashboards, statistics, and admin tools.
+
 ## Related repositories
 
 | Repository | Link |
 |------------|------|
-| Frontend (React) | [github.com/Hiba-Malik/c-parker](https://github.com/Hiba-Malik/c-parker) |
+| Frontend (React) | [github.com/HaiVvolf777/c-parker](https://github.com/HaiVvolf777/c-parker) |
 | Smart contracts (Solidity) | Private — not publicly available |
+
 
 ## Features
 
@@ -178,6 +183,13 @@ c-parker-backend/
 | `ENOTFOUND` for RPC | Replace `RPC_URL` with Alchemy or Infura |
 | Schema errors on re-run | Drop existing types/tables first, or use `npm run db:reset` locally |
 | Event listener stops when host sleeps | Expected on free/low-tier hosts; listener resumes when the service wakes |
+
+## Author
+
+**[Hiba Malik](https://github.com/Hiba-Malik)**
+
+- **This repository** — NestJS API, PostgreSQL schema, blockchain event indexing, and deployment tooling
+- **[Frontend](https://github.com/HaiVvolf777/c-parker)** — backend API integration, live dashboard data, announcements, preview mode, and production deployment setup, UI design
 
 ## License
 
