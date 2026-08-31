@@ -41,3 +41,4 @@ SELECT COUNT(*) AS announcement_count FROM announcements;
 
 
 
+

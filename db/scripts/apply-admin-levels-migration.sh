@@ -3,6 +3,10 @@
 # Migration script to add admin user levels
 # Run this if you already have admin in the database but missing their level records
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+MIGRATION_FILE="$ROOT_DIR/db/migrations/migration-add-admin-levels.sql"
+
 echo ""
 echo "=========================================="
 echo "  Admin Levels Migration"
@@ -10,8 +14,8 @@ echo "=========================================="
 echo ""
 
 # Load environment variables
-if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+if [ -f "$ROOT_DIR/.env" ]; then
+    export $(grep -v '^#' "$ROOT_DIR/.env" | xargs)
     echo "✓ Loaded .env file"
 else
     echo "⚠ No .env file found, using defaults"
@@ -43,12 +47,10 @@ echo ""
 echo "Running migration..."
 echo ""
 
-psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d $DB_DATABASE -f migration-add-admin-levels.sql
+psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d $DB_DATABASE -f "$MIGRATION_FILE"
 
 echo ""
 echo "=========================================="
 echo "  Migration Complete"
 echo "=========================================="
 echo ""
-
-

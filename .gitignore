@@ -54,6 +54,7 @@ temp/
 # Database
 *.sqlite
 *.db
+db/dumps/*.sql
 
 # Misc
 .turbo/

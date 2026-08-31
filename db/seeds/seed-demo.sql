@@ -1,0 +1,6 @@
+-- DEPRECATED: use real test wallets instead
+--
+--   npm run seed:users
+--
+-- That reads wallet addresses from ../users/user*.json
+-- (the same Hardhat test accounts used for on-chain registration).

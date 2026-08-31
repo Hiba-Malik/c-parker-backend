@@ -19,12 +19,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typeorm": "typeorm-ts-node-commonjs",
-    "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.ts",
-    "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
-    "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
-    "seed:admin": "ts-node scripts/seed-admin.ts",
-    "migration:admin-levels": "bash apply-admin-levels-migration.sh"
+    "db:setup": "bash db/scripts/setup-local.sh",
+    "db:reset": "bash db/scripts/reset-local.sh",
+    "seed:admin": "ts-node db/seeds/seed-admin.ts",
+    "seed:users": "ts-node db/seeds/seed-from-users.ts",
+    "migration:admin-levels": "bash db/scripts/apply-admin-levels-migration.sh"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

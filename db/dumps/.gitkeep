@@ -1,0 +1,1 @@
+# Local PostgreSQL data dumps (gitignored). Place cparker-data.sql here for restore-to-supabase.

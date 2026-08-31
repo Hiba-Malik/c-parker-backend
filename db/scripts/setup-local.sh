@@ -6,14 +6,18 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+SCHEMA_FILE="$ROOT_DIR/db/schema.sql"
+
 echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}C-Parker Database Setup${NC}"
 echo -e "${YELLOW}========================================${NC}"
 echo ""
 
 # Load environment variables
-if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+if [ -f "$ROOT_DIR/.env" ]; then
+    export $(grep -v '^#' "$ROOT_DIR/.env" | xargs)
     echo -e "${GREEN}✓ Loaded .env file${NC}"
 else
     echo -e "${RED}✗ .env file not found!${NC}"
@@ -56,7 +60,7 @@ fi
 # Run schema
 echo ""
 echo "Running database schema..."
-PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d $DB_DATABASE -f database-schema.sql
+PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d $DB_DATABASE -f "$SCHEMA_FILE"
 
 if [ $? -eq 0 ]; then
     echo ""
@@ -73,9 +77,3 @@ else
     echo -e "${RED}✗ Failed to run schema${NC}"
     exit 1
 fi
-
-
-
-
-
-

@@ -17,6 +17,8 @@ DROP TYPE IF EXISTS orbit_type CASCADE;
 DROP TYPE IF EXISTS event_type CASCADE;
 DROP TYPE IF EXISTS payment_status CASCADE;
 
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+
 -- ============================================
 -- ENUMS
 -- ============================================
@@ -30,6 +32,18 @@ CREATE TYPE missed_payment_reason AS ENUM (
   'BYPASSED_IN_CASCADE',     -- User was bypassed during upline cascade
   'ADMIN_FALLBACK'           -- Payment went to admin (no eligible upline)
 );
+
+-- ============================================
+-- FUNCTIONS (must exist before triggers)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 -- ============================================
 -- USERS TABLE
@@ -237,11 +251,6 @@ CREATE INDEX idx_level_cycles_active ON level_cycles(is_active);
 CREATE INDEX idx_level_cycles_combo ON level_cycles(user_id, orbit, level_number);
 CREATE INDEX idx_level_cycles_completed ON level_cycles(completed_at DESC) WHERE completed_at IS NOT NULL;
 
-CREATE TRIGGER update_level_cycles_updated_at
-BEFORE UPDATE ON level_cycles
-FOR EACH ROW
-EXECUTE FUNCTION update_updated_at_column();
-
 -- ============================================
 -- EVENTS
 -- Raw blockchain events for audit trail
@@ -281,17 +290,8 @@ CREATE INDEX idx_events_tx ON events(transaction_hash);
 CREATE INDEX idx_events_data ON events USING GIN (event_data);
 
 -- ============================================
--- FUNCTIONS & TRIGGERS
+-- TRIGGERS
 -- ============================================
-
--- Auto-update updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_users_updated_at
 BEFORE UPDATE ON users
@@ -300,6 +300,11 @@ EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_user_levels_updated_at
 BEFORE UPDATE ON user_levels
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_level_cycles_updated_at
+BEFORE UPDATE ON level_cycles
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 

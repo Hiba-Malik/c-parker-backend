@@ -22,10 +22,10 @@
 --   npm run migration:admin-levels
 --
 -- Method 2: Using shell script directly
---   ./apply-admin-levels-migration.sh
+--   ./db/scripts/apply-admin-levels-migration.sh
 --
 -- Method 3: Using psql directly
---   psql -h localhost -U postgres -d cparker -f migration-add-admin-levels.sql
+--   psql -h localhost -U postgres -d cparker -f db/migrations/migration-add-admin-levels.sql
 --
 -- ============================================
 

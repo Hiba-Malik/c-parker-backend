@@ -1,289 +1,199 @@
 # C-Parker Backend
 
-**Complete NestJS backend with integrated blockchain event listeners for the C-Parker Orbit Matrix Platform.**
+REST API and blockchain event indexer for the C-Parker Orbit Matrix platform.
 
-## Table of Contents
+Built with NestJS, PostgreSQL, and Ethers.js. Listens to Orbit A/B smart contracts on Polygon Amoy, persists on-chain activity, and exposes a versioned HTTP API for dashboards and client apps.
 
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Database Setup](#database-setup)
-- [Running the Application](#running-the-application)
-- [API Documentation](#api-documentation)
-- [Project Structure](#project-structure)
-- [Features](#features)
-- [Troubleshooting](#troubleshooting)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-green)](https://nodejs.org/)
 
----
+## Related repositories
 
-## Overview
+| Repository | Link |
+|------------|------|
+| Frontend (React) | [github.com/Hiba-Malik/c-parker](https://github.com/Hiba-Malik/c-parker) |
+| Smart contracts (Solidity) | Private — not publicly available |
 
-This backend provides:
-- **Real-time blockchain event listening** from OrbitA and OrbitB smart contracts
-- **RESTful API** for user data, payments, statistics, and activity feeds
-- **PostgreSQL database** with optimized schema (no redundant data)
-- **In-memory caching** for performance
-- **Swagger API documentation** at `/docs`
-- **TypeScript** for type safety
+## Features
 
-**Tech Stack:**
-- NestJS (Node.js framework)
-- TypeScript
-- PostgreSQL with TypeORM
-- Ethers.js v6 (blockchain interaction)
-- Winston (logging)
-- Swagger (API docs)
+- **Blockchain indexing** — real-time listeners for registration, payments, level upgrades, and cycle events
+- **REST API** — users, payments, statistics, activity feed, announcements, and level cycles
+- **PostgreSQL schema** — normalized tables, views, and helper functions (no redundant denormalized copies)
+- **Caching** — in-memory cache by default; optional Redis
+- **OpenAPI docs** — interactive Swagger UI at `/docs`
+- **Production-ready** — deployable to Render, Railway, or any Node host with a managed Postgres instance (e.g. Supabase)
 
----
+## Requirements
 
-## Prerequisites
+| Tool | Version |
+|------|---------|
+| Node.js | 18+ |
+| PostgreSQL | 14+ |
+| npm | 9+ |
 
-Before you begin, ensure you have installed:
+Optional: Redis for distributed caching.
 
-- **Node.js** (v18 or higher) - [Download](https://nodejs.org/)
-- **PostgreSQL** (v14 or higher) - [Download](https://www.postgresql.org/download/)
-- **npm** or **yarn** (comes with Node.js)
-
-**Optional:**
-- **Git** - for cloning the repository
-
----
-
-## Installation
-
-### 1. Clone or Navigate to Project
+## Quick start
 
 ```bash
-cd c-parker/c-parker-backend
-```
-
-### 2. Install Dependencies
-
-```bash
+git clone https://github.com/Hiba-Malik/c-parker-backend.git
+cd c-parker-backend
 npm install
-```
-
----
-
-## Configuration
-
-### 1. Create Environment File
-
-Copy the example environment file:
-
-```bash
 cp env.example .env
-```
-
-### 2. Configure `.env`
-
-Open `.env` and fill in your values:
-
-```env
-# ============================================
-# SERVER
-# ============================================
-PORT=4000
-NODE_ENV=development
-
-# ============================================
-# DATABASE (PostgreSQL)
-# ============================================
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=your_postgres_password
-DB_DATABASE=cparker
-
-# ============================================
-# BLOCKCHAIN RPC
-# ============================================
-# Choose ONE of these options:
-
-# Option 1: Alchemy (Recommended)
-RPC_PROVIDER=alchemy
-ALCHEMY_API_KEY=your_alchemy_api_key_here
-
-# Option 2: Infura
-# RPC_PROVIDER=infura
-# INFURA_API_KEY=your_infura_key
-
-# Network: sepolia, goerli, mainnet, polygon-amoy, etc.
-NETWORK=polygon-amoy
-
-# ============================================
-# SMART CONTRACTS
-# ============================================
-ORBIT_A_ADDRESS=0xYourOrbitAContractAddress
-ORBIT_B_ADDRESS=0xYourOrbitBContractAddress
-
-# ============================================
-# EVENT LISTENER
-# ============================================
-ENABLE_EVENT_LISTENER=true
-
-# Start from specific block or 'latest' for current block
-START_BLOCK=latest
-
-# ============================================
-# LOGGING
-# ============================================
-LOG_LEVEL=info
-```
----
-
-## Database Setup
-
-### 1. Create PostgreSQL Database
-
-**Option A: Using `psql` command line:**
-
-```bash
-# Login to PostgreSQL
-psql -U postgres
-
-# Create database
-CREATE DATABASE cparker;
-
-# Exit
-\q
-```
-
-### 2. Run Database Schema
-
-The schema creates all tables, views, indexes, and functions:
-
-```bash
-# Make sure you're in the c-parker-backend directory
-cd c-parker/c-parker-backend
-
-# Run the schema
-psql -U postgres -d cparker -f database-schema.sql
-```
-
-**Expected output:**
-```
-CREATE TYPE
-CREATE TYPE
-CREATE TABLE
-CREATE INDEX
-CREATE TABLE
-...
-✓ Database schema created successfully
-```
-
-### 3. Reset Database (Optional)
-
-If you need to reset the database (CAUTION: deletes all data):
-
-```bash
-# Make script executable
-chmod +x reset-database.sh
-
-# Run reset script
-./reset-database.sh
-```
-
-This script will:
-- Drop and recreate the database
-- Run the schema
-- Prompt for confirmation
-
----
-
-## Running the Application
-
-### Development Mode (with auto-reload)
-
-```bash
+# Edit .env with your database and RPC settings
+npm run db:setup
 npm run start:dev
 ```
 
-The server will start on `http://localhost:4000`
+The API listens on `http://localhost:4000`. Swagger docs: `http://localhost:4000/docs`.
 
-**You should see:**
-```
-[Nest] Application successfully started
-[EventListenerService] Starting blockchain event listeners...
-[BlockchainService] ✓ Connected to polygon-amoy (chainId: 80002)
-[EventListenerService] ✓ OrbitA listeners configured
-[EventListenerService] ✓ OrbitB listeners configured
-[EventListenerService] ✓ Listening for events from block latest
-```
+## Configuration
 
-### Production Mode
+Copy `env.example` to `.env` and configure the following:
+
+| Variable | Description |
+|----------|-------------|
+| `PORT` | HTTP port (default `4000`) |
+| `API_PREFIX` | Route prefix (default `api/v1`) |
+| `DB_*` | PostgreSQL connection settings |
+| `DB_SSL` | Set `true` for Supabase and other managed Postgres hosts |
+| `RPC_URL` | Polygon RPC endpoint (Alchemy or Infura recommended) |
+| `ORBIT_A_ADDRESS` / `ORBIT_B_ADDRESS` | Deployed contract addresses |
+| `ENABLE_EVENT_LISTENER` | `true` to index chain events; `false` for API-only mode |
+| `START_BLOCK` | Block number or `latest` |
+| `LOG_LEVEL` | Winston log level |
+
+See `env.example` for the full list.
+
+## Database
+
+### Fresh install (local)
 
 ```bash
-# Build the application
-npm run build
+npm run db:setup
+```
 
-# Start production server
+This creates the database (if needed) and applies `db/schema.sql`.
+
+### Reset (destroys all data)
+
+```bash
+npm run db:reset
+```
+
+### Seed data
+
+```bash
+# Admin user (User ID 1) from on-chain contract state
+npm run seed:admin
+
+# Test users from ../users/user*.json (Hardhat wallet files in the contracts repo)
+npm run seed:users
+```
+
+### Migrations
+
+Incremental SQL migrations live in `db/migrations/`. Apply the admin levels migration with:
+
+```bash
+npm run migration:admin-levels
+```
+
+### Supabase / remote restore
+
+1. Run `db/schema.sql` in the Supabase SQL editor.
+2. Optionally import a local dump:
+
+```bash
+export SUPABASE_HOST=aws-0-....pooler.supabase.com
+export SUPABASE_USER=postgres.<project-ref>
+export SUPABASE_PASSWORD=...
+./db/scripts/restore-to-supabase.sh db/dumps/cparker-data.sql
+```
+
+## Running
+
+| Command | Description |
+|---------|-------------|
+| `npm run start:dev` | Development with hot reload |
+| `npm run build` | Compile TypeScript to `dist/` |
+| `npm run start:prod` | Run compiled app |
+| `npm run lint` | ESLint |
+| `npm test` | Jest unit tests |
+
+## API
+
+**Base URL:** `http://localhost:4000/api/v1`
+
+All user-facing routes use the on-chain `userId`, not the internal database primary key.
+
+| Resource | Examples |
+|----------|----------|
+| Users | `GET /users/:userId`, `GET /users/:userId/stats`, `GET /users/wallet/:address` |
+| Payments | `GET /payments/user/:userId`, `GET /payments/user/:userId/earned` |
+| Statistics | `GET /statistics/platform`, `GET /statistics/leaderboard` |
+| Activity | `GET /activity/feed?limit=50` |
+
+```bash
+curl http://localhost:4000/api/v1/users/2
+curl http://localhost:4000/api/v1/statistics/platform
+```
+
+Full endpoint list: [Swagger UI](http://localhost:4000/docs) when the server is running.
+
+## Deployment
+
+Example: [Render](https://render.com) + [Supabase](https://supabase.com) PostgreSQL.
+
+**Build command**
+
+```bash
+mkdir -p logs && npm install && npm run build
+```
+
+**Start command**
+
+```bash
 npm run start:prod
 ```
 
-## API Documentation
+**Environment**
 
-### Swagger Documentation
+- Use the Supabase **session pooler** host for IPv4 compatibility.
+- Set `DB_SSL=true`.
+- Use a reliable `RPC_URL` (Alchemy/Infura). Public RPC endpoints may fail with `ENOTFOUND` on some hosts.
+- Set `ENABLE_EVENT_LISTENER=false` if you only need the REST API (no live indexing).
 
-Once the server is running, access interactive API docs:
+**Frontend integration:** point your client at `https://your-api-host/api/v1` (include the prefix).
+
+## Project structure
 
 ```
-http://localhost:4000/docs
+c-parker-backend/
+├── db/
+│   ├── schema.sql           # Full PostgreSQL schema
+│   ├── migrations/          # Incremental SQL migrations
+│   ├── seeds/               # Seed scripts (TypeScript + SQL)
+│   ├── scripts/             # setup, reset, restore helpers
+│   └── dumps/               # Local data dumps (gitignored)
+├── docs/                    # Additional documentation
+├── src/
+│   ├── modules/             # NestJS feature modules
+│   ├── common/              # Shared utilities
+│   └── main.ts
+├── env.example
+└── package.json
 ```
 
-### API Base URL
+## Troubleshooting
 
-```
-http://localhost:4000/api/v1
-```
+| Issue | Fix |
+|-------|-----|
+| `404` on `/users/1` | Use the API prefix: `/api/v1/users/1` |
+| `ENOTFOUND` for RPC | Replace `RPC_URL` with Alchemy or Infura |
+| Schema errors on re-run | Drop existing types/tables first, or use `npm run db:reset` locally |
+| Event listener idle on Render free tier | Expected when the service sleeps; listener resumes on wake |
 
-### Key Endpoints
+## License
 
-**All endpoints now use blockchain `userId` (not internal database ID):**
-
-#### Users
-- `GET /users/:userId` - Get user profile
-- `GET /users/:userId/stats` - User statistics
-- `GET /users/:userId/referrals` - Direct referrals
-- `GET /users/:userId/team` - Full team (recursive)
-- `GET /users/:userId/levels` - User levels
-- `GET /users/:userId/matrix/:orbit/:level` - Matrix downlines
-- `GET /users/wallet/:address` - Get user by wallet address
-
-#### Payments
-- `GET /payments/user/:userId` - All payments
-- `GET /payments/user/:userId/earned` - Received payments
-- `GET /payments/user/:userId/missed` - Missed payments
-- `GET /payments/user/:userId/by-level` - Earnings by level
-- `GET /payments/user/:userId/total-earned` - Total earned
-- `GET /payments/user/:userId/total-missed` - Total missed
-
-#### Statistics
-- `GET /statistics/platform` - Platform-wide statistics
-- `GET /statistics/leaderboard?limit=100` - Top earners
-- `GET /statistics/recent?hours=24` - Recent users
-
-#### Activity
-- `GET /activity/feed?limit=50&offset=0` - Activity feed
-- `GET /activity/feed?eventNames=PaymentSent,UserRegistered` - Filtered activity
-
-### Example Requests
-
-```bash
-# Get user by blockchain ID
-curl http://localhost:4000/api/v1/users/2
-
-# Get user statistics
-curl http://localhost:4000/api/v1/users/2/stats
-
-# Get platform statistics
-curl http://localhost:4000/api/v1/statistics/platform
-
-# Get activity feed
-curl http://localhost:4000/api/v1/activity/feed?limit=10
-```
-
-
-
-
+MIT

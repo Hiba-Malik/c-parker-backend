@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import * as path from 'path';
 
 // Load environment variables
-config({ path: path.resolve(__dirname, '../.env') });
+config({ path: path.resolve(__dirname, '../../.env') });
 
 async function seedAdmin() {
   // Validate contract configuration
