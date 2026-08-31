@@ -21,7 +21,7 @@ Built with NestJS, PostgreSQL, and Ethers.js. Listens to Orbit A/B smart contrac
 - **PostgreSQL schema** — normalized tables, views, and helper functions (no redundant denormalized copies)
 - **Caching** — in-memory cache by default; optional Redis
 - **OpenAPI docs** — interactive Swagger UI at `/docs`
-- **Production-ready** — deployable to Render, Railway, or any Node host with a managed Postgres instance (e.g. Supabase)
+- **Production-ready** — deployable to any Node.js host with PostgreSQL
 
 ## Requirements
 
@@ -56,7 +56,7 @@ Copy `env.example` to `.env` and configure the following:
 | `PORT` | HTTP port (default `4000`) |
 | `API_PREFIX` | Route prefix (default `api/v1`) |
 | `DB_*` | PostgreSQL connection settings |
-| `DB_SSL` | Set `true` for Supabase and other managed Postgres hosts |
+| `DB_SSL` | Set `true` when connecting to managed PostgreSQL over SSL |
 | `RPC_URL` | Polygon RPC endpoint (Alchemy or Infura recommended) |
 | `ORBIT_A_ADDRESS` / `ORBIT_B_ADDRESS` | Deployed contract addresses |
 | `ENABLE_EVENT_LISTENER` | `true` to index chain events; `false` for API-only mode |
@@ -99,17 +99,10 @@ Incremental SQL migrations live in `db/migrations/`. Apply the admin levels migr
 npm run migration:admin-levels
 ```
 
-### Supabase / remote restore
+### Remote database restore
 
-1. Run `db/schema.sql` in the Supabase SQL editor.
-2. Optionally import a local dump:
-
-```bash
-export SUPABASE_HOST=aws-0-....pooler.supabase.com
-export SUPABASE_USER=postgres.<project-ref>
-export SUPABASE_PASSWORD=...
-./db/scripts/restore-to-supabase.sh db/dumps/cparker-data.sql
-```
+1. Apply `db/schema.sql` on your PostgreSQL instance (via `psql` or your provider's SQL console).
+2. To import a local data dump into a remote database, see `db/scripts/restore-to-supabase.sh`.
 
 ## Running
 
@@ -143,28 +136,20 @@ Full endpoint list: [Swagger UI](http://localhost:4000/docs) when the server is 
 
 ## Deployment
 
-Example: [Render](https://render.com) + [Supabase](https://supabase.com) PostgreSQL.
-
-**Build command**
+Build and run the compiled app on any Node.js host with access to PostgreSQL:
 
 ```bash
-mkdir -p logs && npm install && npm run build
-```
-
-**Start command**
-
-```bash
+npm install
+npm run build
 npm run start:prod
 ```
 
-**Environment**
+**Notes**
 
-- Use the Supabase **session pooler** host for IPv4 compatibility.
-- Set `DB_SSL=true`.
-- Use a reliable `RPC_URL` (Alchemy/Infura). Public RPC endpoints may fail with `ENOTFOUND` on some hosts.
+- Set `DB_SSL=true` if your database requires SSL.
+- Use a reliable `RPC_URL` (Alchemy or Infura). Some public RPC endpoints fail with `ENOTFOUND` in production.
 - Set `ENABLE_EVENT_LISTENER=false` if you only need the REST API (no live indexing).
-
-**Frontend integration:** point your client at `https://your-api-host/api/v1` (include the prefix).
+- Point clients at `https://your-api-host/api/v1` (include the prefix).
 
 ## Project structure
 
@@ -192,7 +177,7 @@ c-parker-backend/
 | `404` on `/users/1` | Use the API prefix: `/api/v1/users/1` |
 | `ENOTFOUND` for RPC | Replace `RPC_URL` with Alchemy or Infura |
 | Schema errors on re-run | Drop existing types/tables first, or use `npm run db:reset` locally |
-| Event listener idle on Render free tier | Expected when the service sleeps; listener resumes on wake |
+| Event listener stops when host sleeps | Expected on free/low-tier hosts; listener resumes when the service wakes |
 
 ## License
 
